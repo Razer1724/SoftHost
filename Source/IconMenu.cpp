@@ -127,8 +127,6 @@ void IconMenu::setIcon()
             icon = ImageFileFormat::loadFrom(BinaryData::menu_icon_white_png, BinaryData::menu_icon_white_pngSize);
         else if (color.equalsIgnoreCase("black"))
             icon = ImageFileFormat::loadFrom(BinaryData::menu_icon_png, BinaryData::menu_icon_pngSize);
-        
-        // Fixed setIconImage call with two images for cross-platform support
         setIconImage(icon, icon);
     #endif
 }
@@ -143,19 +141,20 @@ void IconMenu::loadActivePlugins()
     PluginWindow::closeAllCurrentlyOpenWindows();
     graph.clear();
     
-    // Use std::unique_ptr for AudioProcessorGraph::AudioGraphIOProcessor
+    // Create graph processors with std::unique_ptr
     auto inputProcessor = std::make_unique<AudioProcessorGraph::AudioGraphIOProcessor>(
         AudioProcessorGraph::AudioGraphIOProcessor::audioInputNode);
     auto outputProcessor = std::make_unique<AudioProcessorGraph::AudioGraphIOProcessor>(
         AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode);
         
+    // Add nodes to graph with proper ownership transfer
     inputNode = graph.addNode(std::move(inputProcessor), INPUT);
     outputNode = graph.addNode(std::move(outputProcessor), OUTPUT);
     
     // If no active plugins, connect input directly to output
     if (activePluginList.getNumTypes() == 0)
     {
-        // Updated AudioProcessorGraph::addConnection signature
+        // Use updated connection format
         graph.addConnection({{INPUT, CHANNEL_ONE}, {OUTPUT, CHANNEL_ONE}});
         graph.addConnection({{INPUT, CHANNEL_TWO}, {OUTPUT, CHANNEL_TWO}});
         return;
@@ -536,8 +535,11 @@ std::vector<PluginDescription> IconMenu::getTimeSortedList()
 {
     int time = 0;
     std::vector<PluginDescription> list;
+    list.reserve(activePluginList.getNumTypes()); // Pre-allocate for performance
+    
     for (int i = 0; i < activePluginList.getNumTypes(); i++)
         list.push_back(getNextPluginOlderThanTime(time));
+    
     return list;
 }
 
@@ -560,11 +562,12 @@ void IconMenu::deletePluginStates()
 void IconMenu::savePluginStates()
 {
     std::vector<PluginDescription> list = getTimeSortedList();
+    
     for (int i = 0; i < list.size(); i++)
     {
         AudioProcessorGraph::NodeID nodeId(i + 1);
         auto node = graph.getNodeForId(nodeId);
-        if (node == nullptr)
+        if (node == nullptr || node->getProcessor() == nullptr)
             continue;
             
         AudioProcessor& processor = *node->getProcessor();

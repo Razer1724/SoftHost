@@ -1,9 +1,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginWindow.h"
 
-// SoftHost - Audio Plugin Host Application
-// (Renamed from LightHost)
-
 class PluginWindow;
 static Array<PluginWindow*> activePluginWindows;
 static CriticalSection activeWindowsLock;
@@ -70,7 +67,7 @@ void PluginWindow::closeAllCurrentlyOpenWindows()
 bool PluginWindow::containsActiveWindows()
 {
     const ScopedLock sl(activeWindowsLock);
-    return activePluginWindows.size() > 0;
+    return !activePluginWindows.isEmpty();
 }
 
 //==============================================================================
@@ -184,7 +181,7 @@ std::unique_ptr<PluginWindow> PluginWindow::getWindowFor(AudioProcessorGraph::No
     if (ui == nullptr)
     {
         if (type == Generic || type == Parameters)
-            ui.reset(new GenericAudioProcessorEditor(*processor));  // Updated to use reference
+            ui.reset(new GenericAudioProcessorEditor(*processor));  // Use reference
         else if (type == Programs)
             ui.reset(new ProgramAudioProcessorEditor(processor));
     }

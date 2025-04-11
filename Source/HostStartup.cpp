@@ -1,12 +1,9 @@
-#define JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP 1
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "IconMenu.hpp"
 
 #if ! (JUCE_PLUGINHOST_VST || JUCE_PLUGINHOST_VST3 || JUCE_PLUGINHOST_AU)
  #error "If you're building the audio plugin host, you probably want to enable VST and/or AU support"
 #endif
-
-
 
 class PluginHostApp : public JUCEApplication
 {
@@ -60,21 +57,23 @@ public:
 private:
     std::unique_ptr<IconMenu> mainWindow;
 
-    StringArray getParameter(String lookFor) 
+    StringArray PluginHostApp::getParameter(String lookFor) 
     {
         StringArray parameters = getCommandLineParameterArray();
         StringArray found;
-        
-        for (int i = 0; i < parameters.size(); ++i)
+    
+        for (const auto& param : parameters) // Use range-based for loop
         {
-            String param = parameters[i];
             if (param.contains(lookFor))
             {
                 found.add(lookFor);
-                int delimiter = param.indexOf(0, "=") + 1;
-                String val = param.substring(delimiter);
-                found.add(val);
-                return found;
+                int delimiter = param.indexOf("="); // Don't need the 0 parameter
+                if (delimiter != -1) // Check if "=" exists
+                {
+                    String val = param.substring(delimiter + 1);
+                    found.add(val);
+                    return found;
+                }
             }
         }
         return found;

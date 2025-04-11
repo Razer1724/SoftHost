@@ -236,10 +236,10 @@ PluginDescription IconMenu::getNextPluginOlderThanTime(int &time)
     
     for (int i = 0; i < activePluginList.getNumTypes(); i++)
     {
-        PluginDescription plugin = *activePluginList.getType(i);
+        const auto& plugin = activePluginList.getTypes().getReference(i);
         String key = getKey("order", plugin);
         String pluginTimeString = getAppProperties().getUserSettings()->getValue(key);
-        int pluginTime = pluginTimeString.getIntValue();
+        int pluginTime = static_cast<int>(pluginTimeString.getIntValue());
         
         if (pluginTime > timeStatic && abs(timeStatic - pluginTime) < diff)
         {
@@ -305,7 +305,6 @@ void IconMenu::timerCallback()
         menu.addSectionHeader("Active Plugins");
         
         // Add active plugins to menu
-        int time = 0;
         std::vector<PluginDescription> timeSorted = getTimeSortedList();
         
         for (int i = 0; i < timeSorted.size(); i++)
@@ -331,10 +330,11 @@ void IconMenu::timerCallback()
         menu.addSectionHeader("Available Plugins");
         
         // Update KnownPluginList usage - use modern alternative
-        for (int i = 0; i < knownPluginList.getNumTypes(); ++i)
+        const auto& pluginTypes = knownPluginList.getTypes();
+        for (int i = 0; i < pluginTypes.size(); ++i) // Using int is acceptable if num types is within int range, JUCE often uses int for sizes.
         {
-            auto* p = knownPluginList.getType(i);
-            menu.addItem(3000 + i, p->name + " - " + p->pluginFormatName);
+            const auto& p = pluginTypes.getUnchecked(i); // Use modern access
+            menu.addItem(3000 + i, p.name + " - " + p.pluginFormatName);
         }
     }
     else {
@@ -427,7 +427,7 @@ void IconMenu::menuInvocationCallback(int id, IconMenu* im)
             
             for (int i = 0; i < im->activePluginList.getNumTypes(); i++)
             {
-                PluginDescription current = *im->activePluginList.getType(i);
+                const auto& current = im->activePluginList.getTypes().getReference(i);
                 if (key.equalsIgnoreCase(getKey("order", current)))
                 {
                     unsortedIndex = i;
@@ -442,7 +442,7 @@ void IconMenu::menuInvocationCallback(int id, IconMenu* im)
             getAppProperties().saveIfNeeded();
             
             // Remove plugin from list
-            PluginDescription pd = *im->activePluginList.getType(unsortedIndex);
+            const auto& pd = im->activePluginList.getTypes().getReference(unsortedIndex);
             im->activePluginList.removeType(pd);
 
             im->savePluginStates();
@@ -454,7 +454,7 @@ void IconMenu::menuInvocationCallback(int id, IconMenu* im)
             int index = id - 3000;
             if (index >= 0 && index < im->knownPluginList.getNumTypes())
             {
-                PluginDescription plugin = *im->knownPluginList.getType(index);
+                const auto& plugin = im->knownPluginList.getTypes().getReference(index);
                 String key = getKey("order", plugin);
                 int t = static_cast<int>(time(nullptr));
                 getAppProperties().getUserSettings()->setValue(key, t);
@@ -611,11 +611,12 @@ void IconMenu::reloadPlugins()
 void IconMenu::removePluginsLackingInputOutput()
 {
     std::vector<PluginDescription> pluginsToRemove;
-    for (int i = 0; i < knownPluginList.getNumTypes(); i++)
+    const auto& pluginTypes = knownPluginList.getTypes();
+    for (int i = 0; i < pluginTypes.size(); ++i)
     {
-        PluginDescription* plugin = knownPluginList.getType(i);
-        if (plugin->numInputChannels < 2 || plugin->numOutputChannels < 2)
-            pluginsToRemove.push_back(*plugin);
+        const auto& pluginRef = pluginTypes.getReference(i);
+        if (pluginRef.numInputChannels < 2 || pluginRef.numOutputChannels < 2)
+        pluginsToRemove.push_back(pluginRef);
     }
     
     // Remove plugins that don't have enough channels

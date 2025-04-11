@@ -1,5 +1,5 @@
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "PluginWindow.h"
+#include "PluginWindow.hpp"
 
 class PluginWindow;
 static Array<PluginWindow*> activePluginWindows;

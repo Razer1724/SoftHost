@@ -1,5 +1,5 @@
-#ifndef PluginWindow_h
-#define PluginWindow_h
+#ifndef PluginWindow_hpp
+#define PluginWindow_hpp
 
 ApplicationProperties& getAppProperties();
 
@@ -52,4 +52,4 @@ inline String getLastXProp(PluginWindow::WindowFormatType type) { return "uiLast
 inline String getLastYProp(PluginWindow::WindowFormatType type) { return "uiLastY_" + toString(type); }
 inline String getOpenProp(PluginWindow::WindowFormatType type)  { return "uiopen_"  + toString(type); }
 
-#endif /* PluginWindow_h */
+#endif /* PluginWindow_hpp */

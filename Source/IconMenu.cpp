@@ -8,7 +8,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "IconMenu.hpp"
-#include "PluginWindow.h"
+#include "PluginWindow.hpp"
 #include <ctime>
 #include <limits.h>
 #if JUCE_WINDOWS
